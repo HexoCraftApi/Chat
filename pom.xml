@@ -82,6 +82,15 @@
 
     <!-- Mettre ici la liste des repositories permettant de récupérer les dépendances du projet-->
     <repositories>
+        <!-- Spigot -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
         <!-- hexosse repository -->
         <repository>
             <id>hexosse-repo</id>
