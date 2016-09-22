@@ -1,19 +1,19 @@
 package com.github.hexocraftapi.chat.event;
 
 /*
- * Copyright 2015 hexosse
+ * Copyright 2016 hexosse
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 public final class ClickEvent
@@ -63,6 +63,9 @@ public final class ClickEvent
 
 	/**
 	 * Creates a ClickEvent.
+	 *
+	 * @param action {@link Action}
+	 * @param value String depending on {@code action}
 	 */
 	public ClickEvent(ClickEvent.Action action, String value) {
 		this.action = action;
@@ -70,7 +73,9 @@ public final class ClickEvent
 	}
 
 	/**
-	 * Creates a ClickEvent.
+	 * Creates a ClickEvent from an existing event
+	 *
+	 * @param event {@code ClickEvent} to copy
 	 */
 	public ClickEvent(ClickEvent event) {
 		this.action = event.getAction();
