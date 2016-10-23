@@ -39,6 +39,7 @@ import static com.github.hexocraftapi.chat.Chat.Reflection.sendPacket;
 public class Chat
 {
 	public static int NO_WRAP_CHAT_PAGE_WIDTH = 55;
+	public static int CHAT_PAGE_HEIGHT = 10;
 
 	public static void sendMessage(Player player, BaseComponent message)
 	{
