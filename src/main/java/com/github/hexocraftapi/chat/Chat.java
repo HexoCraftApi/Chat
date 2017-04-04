@@ -51,6 +51,11 @@ public class Chat
 		sendMessage(ChatMessageType.CHAT, player, messages);
 	}
 
+	public static void sendJsonMessage(Player player, String jsonMessage)
+	{
+		sendJsonMessage(ChatMessageType.CHAT, player, jsonMessage);
+	}
+
 	public static void sendMessage(ChatMessageType position, Player player, BaseComponent message)
 	{
 		sendMessage(position, player, new BaseComponent[]{message});
@@ -63,8 +68,26 @@ public class Chat
 			if(Reflection.getPlayerConnection(player) == null) return;
 
 			Object packet = Reflection.PacketChatConstructorResolver
-								.resolve(new Class[] {Reflection.IChatBaseComponent, byte.class})
-								.newInstance(new Object[] { Reflection.getSerializedMessage(messages), (byte)position.ordinal() });
+				.resolve(new Class[] {Reflection.IChatBaseComponent, byte.class})
+				.newInstance(new Object[] { Reflection.getSerializedMessage(messages), (byte)position.ordinal() });
+
+			sendPacket(packet, player);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public static void sendJsonMessage(ChatMessageType position, Player player, String jsonMessage)
+	{
+		try
+		{
+			if(Reflection.getPlayerConnection(player) == null) return;
+
+			Object packet = Reflection.PacketChatConstructorResolver
+				.resolve(new Class[] {Reflection.IChatBaseComponent, byte.class})
+				.newInstance(new Object[] { Reflection.getSerializedMessage(jsonMessage), (byte)position.ordinal() });
 
 			sendPacket(packet, player);
 		}
@@ -198,14 +221,19 @@ public class Chat
 
 		protected static Object getSerializedMessage(BaseComponent[] messages) throws ClassNotFoundException
 		{
+			return getSerializedMessage(ComponentSerializer.toString(messages));
+		}
+
+		protected static Object getSerializedMessage(String jsonMessage) throws ClassNotFoundException
+		{
 			if(ChatSerializerMethodResolver == null)
 				ChatSerializerMethodResolver = new MethodResolver(NMS_CLASS_RESOLVER.resolve("ChatSerializer", "IChatBaseComponent$ChatSerializer"));
 
 			try
 			{
 				return ChatSerializerMethodResolver
-							.resolve(new ResolverQuery("a", String.class))
-							.invoke(null, new Object[] { ComponentSerializer.toString(messages) });
+				.resolve(new ResolverQuery("a", String.class))
+				.invoke(null, new Object[] { jsonMessage });
 			}
 			catch(ReflectiveOperationException e) {
 				throw new RuntimeException(e);
