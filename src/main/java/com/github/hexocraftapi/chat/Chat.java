@@ -18,24 +18,14 @@ package com.github.hexocraftapi.chat;
 
 import com.github.hexocraftapi.chat.Serializer.ComponentSerializer;
 import com.github.hexocraftapi.chat.component.BaseComponent;
-import com.github.hexocraftapi.reflection.minecraft.Minecraft;
-import com.github.hexocraftapi.reflection.resolver.ConstructorResolver;
-import com.github.hexocraftapi.reflection.resolver.FieldResolver;
-import com.github.hexocraftapi.reflection.resolver.MethodResolver;
-import com.github.hexocraftapi.reflection.resolver.ResolverQuery;
-import com.github.hexocraftapi.reflection.resolver.minecraft.NMSClassResolver;
+import com.github.hexocraftapi.nms.NmsChatMessageType;
+import com.github.hexocraftapi.nms.packet.NmsPacketPlayOutChat;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.github.hexocraftapi.chat.Chat.Reflection.sendPacket;
-
-/**
- * @author <b>Hexosse</b> (<a href="https://github.com/hexosse">on GitHub</a>))
- */
 public class Chat
 {
 	public static int NO_WRAP_CHAT_PAGE_WIDTH = 55;
@@ -63,38 +53,12 @@ public class Chat
 
 	public static void sendMessage(ChatMessageType position, Player player, BaseComponent[] messages)
 	{
-		try
-		{
-			if(Reflection.getPlayerConnection(player) == null) return;
-
-			Object packet = Reflection.PacketChatConstructorResolver
-				.resolve(new Class[] {Reflection.IChatBaseComponent, byte.class})
-				.newInstance(new Object[] { Reflection.getSerializedMessage(messages), (byte)position.ordinal() });
-
-			sendPacket(packet, player);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		NmsPacketPlayOutChat.send(player, (byte)position.ordinal(), ComponentSerializer.toString(messages));
 	}
 
 	public static void sendJsonMessage(ChatMessageType position, Player player, String jsonMessage)
 	{
-		try
-		{
-			if(Reflection.getPlayerConnection(player) == null) return;
-
-			Object packet = Reflection.PacketChatConstructorResolver
-				.resolve(new Class[] {Reflection.IChatBaseComponent, byte.class})
-				.newInstance(new Object[] { Reflection.getSerializedMessage(jsonMessage), (byte)position.ordinal() });
-
-			sendPacket(packet, player);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		NmsPacketPlayOutChat.send(player, (byte)position.ordinal(), jsonMessage);
 	}
 
 	/**
@@ -189,74 +153,4 @@ public class Chat
 
 		return lines.toArray(new String[lines.size()]);
 	}
-
-	static class Reflection {
-
-		private static final NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();
-		//
-		private static final Class<?> PacketPlayOutChat = NMS_CLASS_RESOLVER.resolveSilent("PacketPlayOutChat");
-		private static final Class<?> IChatBaseComponent = NMS_CLASS_RESOLVER.resolveSilent("IChatBaseComponent");
-		//
-		private static final ConstructorResolver PacketChatConstructorResolver = new ConstructorResolver(PacketPlayOutChat);
-		//Packets
-		private static FieldResolver EntityPlayerFieldResolver;
-		private static MethodResolver PlayerConnectionMethodResolver;
-		private static MethodResolver ChatSerializerMethodResolver;
-
-		protected static Object getPlayerConnection(Player p) throws ClassNotFoundException
-		{
-			// Get fields of class EntityPlayer
-			if(EntityPlayerFieldResolver == null)
-				EntityPlayerFieldResolver = new FieldResolver(NMS_CLASS_RESOLVER.resolve("EntityPlayer"));
-
-			try
-			{
-				Object handle = Minecraft.getHandle(p);
-				return EntityPlayerFieldResolver.resolve("playerConnection").get(handle);
-			}
-			catch(ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		protected static Object getSerializedMessage(BaseComponent[] messages) throws ClassNotFoundException
-		{
-			return getSerializedMessage(ComponentSerializer.toString(messages));
-		}
-
-		protected static Object getSerializedMessage(String jsonMessage) throws ClassNotFoundException
-		{
-			if(ChatSerializerMethodResolver == null)
-				ChatSerializerMethodResolver = new MethodResolver(NMS_CLASS_RESOLVER.resolve("ChatSerializer", "IChatBaseComponent$ChatSerializer"));
-
-			try
-			{
-				return ChatSerializerMethodResolver
-				.resolve(new ResolverQuery("a", String.class))
-				.invoke(null, new Object[] { jsonMessage });
-			}
-			catch(ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		protected static void sendPacket(Object packet, Player p) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException, NoSuchMethodException
-		{
-			// Get methods of class PlayerConnection
-			if(PlayerConnectionMethodResolver == null)
-				PlayerConnectionMethodResolver = new MethodResolver(NMS_CLASS_RESOLVER.resolve("PlayerConnection"));
-
-			try
-			{
-				final Object playerConnection = getPlayerConnection(p);
-				PlayerConnectionMethodResolver
-							.resolve("sendPacket")
-							.invoke(playerConnection, packet);
-			}
-			catch(ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
 }
